@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.util.Random;
 
 /**
@@ -44,7 +45,7 @@ public class ServerThread extends Thread {
     private void waitingForConnection() {
         while (!clientConnected) {
             System.out.println("Waiting for connection....");
-            DatagramPacket packet = getPacket();
+            DatagramPacket packet = getPacket(0);
             if (validateClient(packet)) {
                 if (connect(packet)) {
                     clientConnected = true;
@@ -74,7 +75,7 @@ public class ServerThread extends Thread {
 
         while (clientConnected) {
             System.out.println("waiting for start!!!!!!");
-            packet = getPacket();
+            packet = getPacket(2000);
             if (validateClient(packet)) {
                 msg = getMessage(packet);
                 if (msg.equalsIgnoreCase("bye")) {
@@ -103,7 +104,7 @@ public class ServerThread extends Thread {
         sendResponse("ready");
 
         while (!done) {
-            packet = getPacket();
+            packet = getPacket(0);
             if (validateClient(packet)) {
                 msg = getMessage(packet);
                 if (msg.equalsIgnoreCase("bye")) {
@@ -159,13 +160,15 @@ public class ServerThread extends Thread {
         clientConnected = false;
     }
 
-    private DatagramPacket getPacket() {
+    private DatagramPacket getPacket(int timeOut) {
         try {
             byte[] bufferIn = new byte[256];
             DatagramPacket packetIn = new DatagramPacket(bufferIn, bufferIn.length);
+            //Set Timeout
+            //socket.setSoTimeout(timeOut);
             socket.receive(packetIn);
             return packetIn;
-        } catch (IOException e) {
+        }  catch (IOException e) {
             e.printStackTrace();
         }
         return null;

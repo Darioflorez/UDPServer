@@ -26,7 +26,6 @@ public class ServerThread extends Thread {
         clientConnected = false;
         serverActive = true;
     }
-
     public void run() {
         while (serverActive) {
             System.out.println("Server start!");
@@ -61,7 +60,6 @@ public class ServerThread extends Thread {
 
     private void whileClientConnected() {
         while (clientConnected) {
-            //Fix here
             System.out.println("whileClientConnected......");
             if(startGame()){
                 play();
@@ -75,21 +73,27 @@ public class ServerThread extends Thread {
 
         while (clientConnected) {
             System.out.println("waiting for start!!!!!!");
-            packet = getPacket(2000);
-            if (validateClient(packet)) {
-                msg = getMessage(packet);
-                if (msg.equalsIgnoreCase("bye")) {
-                    closeConnection();
-                    return false;
-                }
-                else if (msg.equalsIgnoreCase("start")) {
-                    return true;
-                }
-                else {
-                    sendRefuse(packet, "no start");
+            packet = getPacket(7000);
+            if(packet != null){
+                if (validateClient(packet)) {
+                    msg = getMessage(packet);
+                    if (msg.equalsIgnoreCase("bye")) {
+                        closeConnection();
+                        return false;
+                    }
+                    else if (msg.equalsIgnoreCase("start")) {
+                        return true;
+                    }
+                    else {
+                        sendResponse("no start");
+                    }
+                } else {
+                    sendRefuse(packet, "busy");
                 }
             } else {
-                sendRefuse(packet, "no valid");
+                sendResponse("Timeout server close connection!");
+                closeConnection();
+                return false;
             }
         }
         return false;
@@ -104,29 +108,35 @@ public class ServerThread extends Thread {
         sendResponse("ready");
 
         while (!done) {
-            packet = getPacket(0);
-            if (validateClient(packet)) {
-                msg = getMessage(packet);
-                if (msg.equalsIgnoreCase("bye")) {
-                    done = true;
-                    closeConnection();
-                } else if (isNumber(msg)) {
-                    response = Integer.parseInt(msg);
-                    System.out.println("Response: " + response);
-                    System.out.println("RND: " + rnd);
-                    if (response == rnd) {
-                        sendResponse("correct!");
+            packet = getPacket(7000);
+            if(packet != null){
+                if (validateClient(packet)) {
+                    msg = getMessage(packet);
+                    if (msg.equalsIgnoreCase("bye")) {
                         done = true;
-                    } else if (response < rnd) {
-                        sendResponse("up");
+                        closeConnection();
+                    } else if (isNumber(msg)) {
+                        response = Integer.parseInt(msg);
+                        System.out.println("Response: " + response);
+                        System.out.println("RND: " + rnd);
+                        if (response == rnd) {
+                            sendResponse("correct!");
+                            done = true;
+                        } else if (response < rnd) {
+                            sendResponse("up");
+                        } else {
+                            sendResponse("down");
+                        }
                     } else {
-                        sendResponse("down");
+                        sendResponse("is not number");
                     }
                 } else {
-                    sendResponse("is not number");
+                    sendRefuse(packet, "busy");
                 }
-            } else {
-                sendRefuse(packet, "no valid");
+            } else{
+                sendResponse("Timeout server close connection!");
+                closeConnection();
+                done = true;
             }
         }
     }
@@ -165,9 +175,18 @@ public class ServerThread extends Thread {
             byte[] bufferIn = new byte[256];
             DatagramPacket packetIn = new DatagramPacket(bufferIn, bufferIn.length);
             //Set Timeout
-            //socket.setSoTimeout(timeOut);
-            socket.receive(packetIn);
-            return packetIn;
+            socket.setSoTimeout(timeOut);
+            try {
+                socket.receive(packetIn);
+                return packetIn;
+            }
+            catch (SocketTimeoutException e) {
+                // timeout exception.
+                System.out.println("Timeout reached!!! " + e);
+                return null;
+            }
+            //socket.receive(packetIn);
+            //return packetIn;
         }  catch (IOException e) {
             e.printStackTrace();
         }
@@ -214,8 +233,7 @@ public class ServerThread extends Thread {
 
     public static int randInt(int min, int max) {
         Random rand = new Random();
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-        return randomNum;
+        return rand.nextInt((max - min) + 1) + min;
 
     }
 }

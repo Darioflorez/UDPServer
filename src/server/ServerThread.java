@@ -73,7 +73,7 @@ public class ServerThread extends Thread {
 
         while (clientConnected) {
             System.out.println("waiting for start!!!!!!");
-            packet = getPacket(7000);
+            packet = getPacket(15000);
             if(packet != null){
                 if (validateClient(packet)) {
                     msg = getMessage(packet);
@@ -108,7 +108,7 @@ public class ServerThread extends Thread {
         sendResponse("ready");
 
         while (!done) {
-            packet = getPacket(7000);
+            packet = getPacket(15000);
             if(packet != null){
                 if (validateClient(packet)) {
                     msg = getMessage(packet);

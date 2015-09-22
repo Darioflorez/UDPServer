@@ -48,12 +48,12 @@ public class ServerThread extends Thread {
             if (validateClient(packet)) {
                 if (connect(packet)) {
                     clientConnected = true;
-                    sendResponse("ok");
+                    sendResponse("OK");
                 } else {
-                    sendRefuse(packet, "no hello");
+                    sendRefuse(packet, "WRONG!");
                 }
             } else {
-                sendRefuse(packet, "busy");
+                sendRefuse(packet, "BUSY");
             }
         }
     }
@@ -77,7 +77,7 @@ public class ServerThread extends Thread {
             if(packet != null){
                 if (validateClient(packet)) {
                     msg = getMessage(packet);
-                    if (msg.equalsIgnoreCase("bye")) {
+                    if (msg.equalsIgnoreCase("BYE")) {
                         closeConnection();
                         return false;
                     }
@@ -85,7 +85,7 @@ public class ServerThread extends Thread {
                         return true;
                     }
                     else {
-                        sendResponse("no start");
+                        sendResponse("WRONG!");
                     }
                 } else {
                     sendRefuse(packet, "busy");

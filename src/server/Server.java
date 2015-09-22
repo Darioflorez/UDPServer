@@ -7,14 +7,6 @@ import java.io.IOException;
  */
 public class Server {
     public static void main(String[] args){
-        String s = "123";
-        if(isNumber(s)){
-            System.out.println("is number");
-        }
-        else {
-            System.out.println("No number");
-        }
-
         try{
             ServerThread server = new ServerThread();
             server.start();
@@ -23,12 +15,4 @@ public class Server {
         }
     }
 
-    public static boolean isNumber(String msg){
-        try{
-            Integer.parseInt(msg);
-            return true;
-        }catch(NumberFormatException e){
-            return false;
-        }
-    }
 }
